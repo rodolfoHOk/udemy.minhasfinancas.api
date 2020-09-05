@@ -1,6 +1,7 @@
 package br.com.hioktec.minhasfinancas.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import br.com.hioktec.minhasfinancas.model.entity.Lancamento;
 import br.com.hioktec.minhasfinancas.model.enums.StatusLancamento;
@@ -18,4 +19,6 @@ public interface LancamentoService {
 	void atualizarStatus(Lancamento lancamento, StatusLancamento status);
 	
 	void validar(Lancamento lancamento);
+	
+	Optional<Lancamento> obterPorId(Long id);
 }

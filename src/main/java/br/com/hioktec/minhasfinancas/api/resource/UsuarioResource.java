@@ -12,9 +12,11 @@ import br.com.hioktec.minhasfinancas.exception.ErroAutenticacao;
 import br.com.hioktec.minhasfinancas.exception.RegraNegocioException;
 import br.com.hioktec.minhasfinancas.model.entity.Usuario;
 import br.com.hioktec.minhasfinancas.service.UsuarioService;
+import lombok.RequiredArgsConstructor;
 
 @RestController // controller do spring já injeta a dependencia UsuarioService do construtor
 @RequestMapping("/api/usuarios")
+@RequiredArgsConstructor
 public class UsuarioResource {
 	
 	/* teste do controller
@@ -24,14 +26,17 @@ public class UsuarioResource {
 	}
 	*/
 	
-	private UsuarioService service;
+	private final UsuarioService service; // inserimos final para usar @RequiredArgsConstructor
 	
+	/* eliminando a necessidade de ficar inserindo as injeções no constuctor usaremos @RequiredArgsConstructor
 	public UsuarioResource(UsuarioService service) {
 		this.service = service;
 	}
+	*/
 	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@PostMapping
-	public ResponseEntity<String> salvar(@RequestBody UsuarioDTO dto) { //usaremos insomnia para testar (https://insomnia.rest)
+	public ResponseEntity salvar(@RequestBody UsuarioDTO dto) { //usaremos insomnia para testar (https://insomnia.rest)
 		
 		Usuario usuario = Usuario.builder()
 				.nome(dto.getNome())
@@ -41,17 +46,18 @@ public class UsuarioResource {
 		
 		try {
 			Usuario usuarioSalvo = service.salvarUsuario(usuario);
-			return new ResponseEntity<String>(usuarioSalvo.toString(), HttpStatus.CREATED);
+			return new ResponseEntity(usuarioSalvo, HttpStatus.CREATED);
 		} catch(RegraNegocioException e){
 			return ResponseEntity.badRequest().body(e.getMessage());
 		}
 	}
 	
+	@SuppressWarnings("rawtypes")
 	@PostMapping("/autenticar")
-	public ResponseEntity<String> autenticar(@RequestBody UsuarioDTO dto) {
+	public ResponseEntity autenticar(@RequestBody UsuarioDTO dto) {
 		try {
 			Usuario usuarioAutenticado = service.autenticar(dto.getEmail(), dto.getSenha());
-			return ResponseEntity.ok(usuarioAutenticado.toString());
+			return ResponseEntity.ok(usuarioAutenticado);
 		} catch (ErroAutenticacao e) {
 			return ResponseEntity.badRequest().body(e.getMessage());
 		}
