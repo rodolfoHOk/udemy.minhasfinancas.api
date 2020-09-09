@@ -220,4 +220,18 @@ public class LancamentoServiceTest {
 		exception = catchThrowable(() -> service.validar(lancamento));
 		assertThat(exception).isNull();
 	}
+	
+	@Test
+	public void deveObterSaldoPorUsuario() {
+		Long id = 1l;
+		Mockito.when(repository.obterSaldoPorTipoLancamentoEUsuario(id, TipoLancamento.RECEITA))
+			.thenReturn(BigDecimal.valueOf(200));
+		Mockito.when(repository.obterSaldoPorTipoLancamentoEUsuario(id, TipoLancamento.DESPESA))
+			.thenReturn(BigDecimal.valueOf(100));
+		
+		BigDecimal saldo = service.obterSaldoPorUsuario(id);
+		
+		assertThat(saldo).isEqualTo(BigDecimal.valueOf(100));
+		}
+	
 }

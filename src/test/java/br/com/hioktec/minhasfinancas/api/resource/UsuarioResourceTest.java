@@ -1,5 +1,8 @@
 package br.com.hioktec.minhasfinancas.api.resource;
 
+import java.math.BigDecimal;
+import java.util.Optional;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -130,4 +133,41 @@ public class UsuarioResourceTest {
 			.andExpect(MockMvcResultMatchers.status().isBadRequest());
 	}
 	
+	@Test
+	public void deveObterOSaldoDoUsuario() throws Exception  {
+		//cenario
+		String email = "usuario@email.com";
+		String senha = "1234";
+		Long id = 1l;
+		BigDecimal saldo = BigDecimal.valueOf(50);
+		
+		Usuario usuario = Usuario.builder().id(id).nome("usuario").email(email).senha(senha).build();
+		Mockito.when(service.obterPorId(id)).thenReturn(Optional.of(usuario));
+		Mockito.when(lancamentoService.obterSaldoPorUsuario(id)).thenReturn(saldo);
+		
+		//execucao e verificacao
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+													.get(API.concat("/1/saldo"))
+													.accept(JSON)
+													.contentType(JSON);
+		mvc.perform(request)
+			.andExpect(MockMvcResultMatchers.status().isOk())
+			.andExpect(MockMvcResultMatchers.content().string("50"));
+	}
+	
+	@Test
+	public void deveRetornarNotFoundQuandoUsuarioNaoExisteAoTentarObterSaldo() throws Exception  {
+		//cenario
+		Long id = 1l;
+
+		Mockito.when(service.obterPorId(id)).thenReturn(Optional.empty());
+		
+		//execucao e verificacao
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+													.get(API.concat("/1/saldo"))
+													.accept(JSON)
+													.contentType(JSON);
+		mvc.perform(request)
+			.andExpect(MockMvcResultMatchers.status().isNotFound());
+	}
 }
