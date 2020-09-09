@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.com.hioktec.minhasfinancas.api.dto.AtualizaStatusDTO;
 import br.com.hioktec.minhasfinancas.api.dto.LancamentoDTO;
 import br.com.hioktec.minhasfinancas.exception.RegraNegocioException;
 import br.com.hioktec.minhasfinancas.model.entity.Lancamento;
@@ -45,7 +46,7 @@ public class LancamentoResource {
 		try {
 			Lancamento entidade = converter(dto);
 			entidade = service.salvar(entidade);
-			return new ResponseEntity(entidade.toString(), HttpStatus.CREATED);
+			return new ResponseEntity(entidade, HttpStatus.CREATED);
 		} catch (RegraNegocioException e) {
 			return ResponseEntity.badRequest().body(e.getMessage());
 		}
@@ -67,6 +68,24 @@ public class LancamentoResource {
 			new ResponseEntity("Lancamento não encontrado na base de dados", HttpStatus.BAD_REQUEST));
 	}
 	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@PutMapping("{id}/atualiza-status")
+	public ResponseEntity atualizarStatus(@PathVariable("id") Long id, @RequestBody AtualizaStatusDTO dto) {
+		return service.obterPorId(id).map( entity -> {
+			StatusLancamento statusSelecionado = StatusLancamento.valueOf(dto.getStatus());
+			if(statusSelecionado == null)
+				return new ResponseEntity("Status informado inválido", HttpStatus.BAD_REQUEST);
+			try {
+				entity.setStatus(statusSelecionado);
+				service.atualizar(entity);
+				return ResponseEntity.ok(entity);
+			} catch (RegraNegocioException e) {
+				return ResponseEntity.badRequest().body(e.getMessage());
+			}
+		}).orElseGet(() -> 
+			new ResponseEntity("Lancamento não encontrado na base de dados", HttpStatus.BAD_REQUEST));
+	}
+		
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@DeleteMapping("{id}")
 	public ResponseEntity deletar( @PathVariable("id") Long id ){
@@ -109,9 +128,12 @@ public class LancamentoResource {
 		lancamento.setAno(dto.getAno());
 		lancamento.setValor(dto.getValor());
 		lancamento.setTipo(TipoLancamento.valueOf(dto.getTipo()));
-		lancamento.setStatus(StatusLancamento.valueOf(dto.getStatus()));
+		if(dto.getStatus() != null) {
+			lancamento.setStatus(StatusLancamento.valueOf(dto.getStatus()));
+		}
 		
-		Usuario usuario = usuarioService.obterPorId(dto.getUsuarioId())
+		Usuario usuario = usuarioService
+				.obterPorId(dto.getUsuario())
 				.orElseThrow(() -> new RegraNegocioException("Usuário não encontrado para o id informado"));
 		
 		lancamento.setUsuario(usuario);

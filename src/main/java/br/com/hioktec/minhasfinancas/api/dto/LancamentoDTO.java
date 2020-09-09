@@ -16,5 +16,5 @@ public class LancamentoDTO {
 	private BigDecimal valor;
 	private String tipo;
 	private String status;
-	private Long usuarioId;
+	private Long usuario;
 }
