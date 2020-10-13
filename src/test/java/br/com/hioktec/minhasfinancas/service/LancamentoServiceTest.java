@@ -7,14 +7,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.data.domain.Example;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import br.com.hioktec.minhasfinancas.exception.RegraNegocioException;
 import br.com.hioktec.minhasfinancas.model.entity.Lancamento;
@@ -25,7 +25,7 @@ import br.com.hioktec.minhasfinancas.model.repository.LancamentoRepository;
 import br.com.hioktec.minhasfinancas.model.repository.LancamentoRepositoryTest;
 import br.com.hioktec.minhasfinancas.service.impl.LancamentoServiceImpl;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @ActiveProfiles("test")
 public class LancamentoServiceTest {
 	
