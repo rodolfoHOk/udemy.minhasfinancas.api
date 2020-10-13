@@ -224,9 +224,9 @@ public class LancamentoServiceTest {
 	@Test
 	public void deveObterSaldoPorUsuario() {
 		Long id = 1l;
-		Mockito.when(repository.obterSaldoPorTipoLancamentoEUsuario(id, TipoLancamento.RECEITA))
+		Mockito.when(repository.obterSaldoPorTipoLancamentoEUsuarioEStatus(id, TipoLancamento.RECEITA, StatusLancamento.EFETIVADO))
 			.thenReturn(BigDecimal.valueOf(200));
-		Mockito.when(repository.obterSaldoPorTipoLancamentoEUsuario(id, TipoLancamento.DESPESA))
+		Mockito.when(repository.obterSaldoPorTipoLancamentoEUsuarioEStatus(id, TipoLancamento.DESPESA, StatusLancamento.EFETIVADO))
 			.thenReturn(BigDecimal.valueOf(100));
 		
 		BigDecimal saldo = service.obterSaldoPorUsuario(id);
