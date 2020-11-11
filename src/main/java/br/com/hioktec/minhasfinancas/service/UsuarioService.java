@@ -6,12 +6,16 @@ import br.com.hioktec.minhasfinancas.model.entity.Usuario;
 
 public interface UsuarioService {
 	
-	Usuario autenticar(String email, String senha);
+	// Usuario autenticar(String email, String senha); removemos para implementar segurança JWT
 	
 	Usuario salvarUsuario(Usuario usuario);
 	
-	void validarEmail(String email);
+	// void validarEmail(String email); refatoramos para melhoras validação.
 	
 	Optional<Usuario> obterPorId(Long id);
+	
+	Boolean existeNomeUsuario(String nomeUsuario);
+	
+	Boolean existeEmail(String email);
 	
 }

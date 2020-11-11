@@ -21,7 +21,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.com.hioktec.minhasfinancas.api.dto.UsuarioDTO;
-import br.com.hioktec.minhasfinancas.exception.ErroAutenticacao;
 import br.com.hioktec.minhasfinancas.exception.RegraNegocioException;
 import br.com.hioktec.minhasfinancas.model.entity.Usuario;
 import br.com.hioktec.minhasfinancas.service.LancamentoService;
@@ -45,6 +44,7 @@ public class UsuarioResourceTest {
 	@MockBean
 	LancamentoService lancamentoService;
 	
+	/* refatorado para usar segurança JWT
 	@Test
 	public void deveAutenticarUmUsuario() throws Exception {
 		//cenario
@@ -88,6 +88,7 @@ public class UsuarioResourceTest {
 		mvc.perform(request)
 			.andExpect(MockMvcResultMatchers.status().isBadRequest());
 	}
+	*/
 	
 	@Test
 	public void deveCriarUmNovoUsuario() throws Exception {
@@ -96,7 +97,8 @@ public class UsuarioResourceTest {
 		String senha = "1234";
 		
 		UsuarioDTO dto = UsuarioDTO.builder().email(email).senha(senha).build();
-		Usuario usuario = Usuario.builder().id(1l).nome("usuario").email(email).senha(senha).build();
+		Usuario usuario = new Usuario("usuario", "nomeUsuario", email, senha);
+		usuario.setId(1l);
 		Mockito.when(service.salvarUsuario(Mockito.any(Usuario.class))).thenReturn(usuario);
 		String json = new ObjectMapper().writeValueAsString(dto);
 		
@@ -141,7 +143,8 @@ public class UsuarioResourceTest {
 		Long id = 1l;
 		BigDecimal saldo = BigDecimal.valueOf(50);
 		
-		Usuario usuario = Usuario.builder().id(id).nome("usuario").email(email).senha(senha).build();
+		Usuario usuario = new Usuario("usuario", "nomeUsuario", email, senha);
+		usuario.setId(id);
 		Mockito.when(service.obterPorId(id)).thenReturn(Optional.of(usuario));
 		Mockito.when(lancamentoService.obterSaldoPorUsuario(id)).thenReturn(saldo);
 		

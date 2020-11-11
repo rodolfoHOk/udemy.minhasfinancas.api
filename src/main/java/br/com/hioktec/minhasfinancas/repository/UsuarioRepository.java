@@ -1,4 +1,4 @@
-package br.com.hioktec.minhasfinancas.model.repository;
+package br.com.hioktec.minhasfinancas.repository;
 
 import java.util.Optional;
 
@@ -13,7 +13,14 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long>{
 	obs: findByEmailAndNome(String email, String nome) com acima também e uma convenção do spring data.
 	*/
 	
-	boolean existsByEmail(String email);
+	Boolean existsByEmail(String email);
+	
+	Boolean existsByNomeUsuario(String nomeUsuario); // adicionado para segurança JWT
 	
 	Optional<Usuario> findByEmail(String email);
+	
+	Optional<Usuario> findByNomeUsuario(String nomeUsuario); // adicionado para segurança JWT
+	
+	Optional<Usuario> findByNomeUsuarioOrEmail(String nomeUsuario, String email); // adisionado para segurança JWT
+	
 }

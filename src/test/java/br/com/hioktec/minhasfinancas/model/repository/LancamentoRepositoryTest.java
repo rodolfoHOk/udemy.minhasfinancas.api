@@ -20,6 +20,7 @@ import br.com.hioktec.minhasfinancas.model.entity.Lancamento;
 import br.com.hioktec.minhasfinancas.model.entity.Usuario;
 import br.com.hioktec.minhasfinancas.model.enums.StatusLancamento;
 import br.com.hioktec.minhasfinancas.model.enums.TipoLancamento;
+import br.com.hioktec.minhasfinancas.repository.LancamentoRepository;
 
 @ExtendWith(SpringExtension.class)
 @DataJpaTest
@@ -87,11 +88,7 @@ public class LancamentoRepositoryTest {
 
 	public static Lancamento criarLancamento() {
 		
-		Usuario usuario = Usuario.builder()
-				.nome("usuarioTest")
-				.email("test@email.com")
-				.senha("senha")
-				.build();
+		Usuario usuario = new Usuario("usuario", "nomeUsuario", "test@email.com", "senha");
 		
 		return Lancamento.builder()
 				.descricao("lancamento qualquer")

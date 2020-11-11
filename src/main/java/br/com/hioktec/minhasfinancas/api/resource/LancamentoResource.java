@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -40,29 +41,28 @@ public class LancamentoResource {
 		this.usuarioService = usuarioService;
 	*/
 	
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@PostMapping
-	public ResponseEntity salvar( @RequestBody LancamentoDTO dto ) {
+	@PreAuthorize("hasAuthority('USUARIO')")
+	public ResponseEntity<?> salvar( @RequestBody LancamentoDTO dto ) {
 		try {
 			Lancamento entidade = converter(dto);
 			entidade = service.salvar(entidade);
-			return new ResponseEntity(entidade, HttpStatus.CREATED);
+			return new ResponseEntity<>(entidade, HttpStatus.CREATED);
 		} catch (RegraNegocioException e) {
 			return ResponseEntity.badRequest().body(e.getMessage());
 		}
 	}
 	
-	@SuppressWarnings({"rawtypes", "unchecked"})
 	@GetMapping("{id}")
-	public ResponseEntity obterLancamento ( @PathVariable("id") Long id ) {
+	public ResponseEntity<?> obterLancamento ( @PathVariable("id") Long id ) {
 		return service.obterPorId(id)
-				.map(lancamento -> new ResponseEntity(converterDTO(lancamento), HttpStatus.OK))
-				.orElseGet(() -> new ResponseEntity(HttpStatus.NOT_FOUND));
+				.map(lancamento -> new ResponseEntity<>(converterDTO(lancamento), HttpStatus.OK))
+				.orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
 	}
 	
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@PutMapping("{id}")
-	public ResponseEntity atualizar( @PathVariable("id") Long id, @RequestBody LancamentoDTO dto ) {
+	@PreAuthorize("hasAuthority('USUARIO')")
+	public ResponseEntity<?> atualizar( @PathVariable("id") Long id, @RequestBody LancamentoDTO dto ) {
 		return service.obterPorId(id).map( entity -> {
 			try {
 				Lancamento lancamento = converter(dto);
@@ -73,16 +73,16 @@ public class LancamentoResource {
 				return ResponseEntity.badRequest().body(e.getMessage());
 			}
 		}).orElseGet(() -> 
-			new ResponseEntity("Lancamento não encontrado na base de dados", HttpStatus.BAD_REQUEST));
+			new ResponseEntity<>("Lancamento não encontrado na base de dados", HttpStatus.BAD_REQUEST));
 	}
 	
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@PutMapping("{id}/atualiza-status")
-	public ResponseEntity atualizarStatus(@PathVariable("id") Long id, @RequestBody AtualizaStatusDTO dto) {
+	@PreAuthorize("hasAuthority('USUARIO')")
+	public ResponseEntity<?> atualizarStatus(@PathVariable("id") Long id, @RequestBody AtualizaStatusDTO dto) {
 		return service.obterPorId(id).map( entity -> {
 			StatusLancamento statusSelecionado = StatusLancamento.valueOf(dto.getStatus());
 			if(statusSelecionado == null)
-				return new ResponseEntity("Status informado inválido", HttpStatus.BAD_REQUEST);
+				return new ResponseEntity<>("Status informado inválido", HttpStatus.BAD_REQUEST);
 			try {
 				entity.setStatus(statusSelecionado);
 				service.atualizar(entity);
@@ -91,22 +91,21 @@ public class LancamentoResource {
 				return ResponseEntity.badRequest().body(e.getMessage());
 			}
 		}).orElseGet(() -> 
-			new ResponseEntity("Lancamento não encontrado na base de dados", HttpStatus.BAD_REQUEST));
+			new ResponseEntity<>("Lancamento não encontrado na base de dados", HttpStatus.BAD_REQUEST));
 	}
 		
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@DeleteMapping("{id}")
-	public ResponseEntity deletar( @PathVariable("id") Long id ){
+	@PreAuthorize("hasAuthority('USUARIO')")
+	public ResponseEntity<?> deletar( @PathVariable("id") Long id ){
 		return service.obterPorId(id).map( entity -> {
 			service.deletar(entity);
-			return new ResponseEntity(HttpStatus.NO_CONTENT);
+			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 		}).orElseGet(() -> 
-			new ResponseEntity("Lancamento não encontrado na base de dados", HttpStatus.BAD_REQUEST));
+			new ResponseEntity<>("Lancamento não encontrado na base de dados", HttpStatus.BAD_REQUEST));
 	}
 	
-	@SuppressWarnings("rawtypes")
 	@GetMapping
-	public ResponseEntity buscar(
+	public ResponseEntity<?> buscar(
 			@RequestParam(value = "descricao", required = false) String descricao,
 			@RequestParam(value = "mes", required = false) Integer mes,
 			@RequestParam(value = "ano", required = false) Integer ano,

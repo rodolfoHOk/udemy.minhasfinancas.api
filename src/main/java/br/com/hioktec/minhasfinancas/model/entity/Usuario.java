@@ -1,33 +1,48 @@
 package br.com.hioktec.minhasfinancas.model.entity;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
+
+import org.hibernate.annotations.NaturalId;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "usuario", schema = "financas")
+@Table(name = "usuario", schema = "financas", uniqueConstraints = {
+		@UniqueConstraint(columnNames = {"nome_usuario"}),
+		@UniqueConstraint(columnNames = {"email"})
+})
 /* substituimos todos estes pela anotação @Data exceto @NoArgsConstructor
-@Getter
-@Setter
-@EqualsAndHashCode
-@ToString
-@NoArgsConstructor
-@AllArgsConstructor
+* @Getter
+* @Setter
+* @EqualsAndHashCode
+* @ToString
+* @NoArgsConstructor
+* @AllArgsConstructor
 */
 @Data
 @NoArgsConstructor // dá conflito com o builder que necessita do construtor com todos os argumentos
 @AllArgsConstructor // então declaramos este para solucionar
-@Builder
+// @Builder retiramos para uso do autoridades para segurança JWT
 public class Usuario {
 	
 	@Id
@@ -35,15 +50,42 @@ public class Usuario {
 	@GeneratedValue(strategy = GenerationType.IDENTITY) // IDENTITY no postgresql usar AUTO para mySQL
 	private Long id;
 	
+	@NotBlank // adicionamos para a validação dos dados do lado do servidor em todos os campos
+	@Size(max = 40) // adicionamos para a validação dos dados do lado do servidor em todos os campos
 	@Column(name = "nome")
 	private String nome;
 	
+	@NotBlank
+	@Size(max = 20)
+	@Column(name = "nome_usuario")
+	private String nomeUsuario; // adicionamos para segurança JWT
+	
+	@NaturalId
+	@NotBlank
+	@Size(max = 40)
+	@Email // adicionamos para a validação do lado do servidor
 	@Column(name = "email")
 	private String email;
 	
+	@NotBlank
+	@Size(max = 100)
 	@Column(name = "senha")
 	@JsonIgnore
 	private String senha;
+	
+	@ManyToMany(fetch = FetchType.LAZY)
+	@JoinTable(name = "autoridades_usuario",
+		joinColumns = @JoinColumn(name = "usuarioId"),
+		inverseJoinColumns = @JoinColumn(name = "autoridadeId"))
+	private Set<Autoridade> autoridades = new HashSet<Autoridade>(); // adicionamos para segurança JWT
+
+	public Usuario(@NotBlank @Size(max = 40) String nome, @NotBlank @Size(max = 20) String nomeUsuario,
+			@NotBlank @Size(max = 40) @Email String email, @NotBlank @Size(max = 100) String senha) {
+		this.nome = nome;
+		this.nomeUsuario = nomeUsuario;
+		this.email = email;
+		this.senha = senha;
+	}
 	
 }
 	

@@ -5,10 +5,8 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import br.com.hioktec.minhasfinancas.exception.ErroAutenticacao;
-import br.com.hioktec.minhasfinancas.exception.RegraNegocioException;
 import br.com.hioktec.minhasfinancas.model.entity.Usuario;
-import br.com.hioktec.minhasfinancas.model.repository.UsuarioRepository;
+import br.com.hioktec.minhasfinancas.repository.UsuarioRepository;
 import br.com.hioktec.minhasfinancas.service.UsuarioService;
 
 @Service // bean gerenciado
@@ -22,6 +20,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 		this.repository = repository;
 	}
 
+	/* removemos para implementar segunrança JWT
 	@Override
 	public Usuario autenticar(String email, String senha) {
 		Optional<Usuario> usuario = repository.findByEmail(email);
@@ -36,14 +35,16 @@ public class UsuarioServiceImpl implements UsuarioService {
 		
 		return usuario.get();
 	}
+	*/
 
 	@Override
 	@Transactional
 	public Usuario salvarUsuario(Usuario usuario) {
-		validarEmail(usuario.getEmail());
+		// validarEmail(usuario.getEmail()); removemos refatoração melhorar validação.
 		return repository.save(usuario);
 	}
-
+	
+	/* Removemos para melhorar validação adicionamos o método existeEmail
 	@Override
 	public void validarEmail(String email) {
 		boolean existe = repository.existsByEmail(email);
@@ -52,10 +53,21 @@ public class UsuarioServiceImpl implements UsuarioService {
 			throw new RegraNegocioException("Já existe usuário cadastrado com este e-mail.");
 		}
 	}
+	*/
 
 	@Override
 	public Optional<Usuario> obterPorId(Long usuarioId) {
 		return repository.findById(usuarioId);
+	}
+
+	@Override
+	public Boolean existeNomeUsuario(String nomeUsuario) {
+		return repository.existsByNomeUsuario(nomeUsuario);
+	}
+
+	@Override
+	public Boolean existeEmail(String email) {
+		return repository.existsByEmail(email);
 	}
 	
 }

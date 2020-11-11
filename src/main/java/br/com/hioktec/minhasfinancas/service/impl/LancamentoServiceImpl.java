@@ -15,7 +15,7 @@ import br.com.hioktec.minhasfinancas.exception.RegraNegocioException;
 import br.com.hioktec.minhasfinancas.model.entity.Lancamento;
 import br.com.hioktec.minhasfinancas.model.enums.StatusLancamento;
 import br.com.hioktec.minhasfinancas.model.enums.TipoLancamento;
-import br.com.hioktec.minhasfinancas.model.repository.LancamentoRepository;
+import br.com.hioktec.minhasfinancas.repository.LancamentoRepository;
 import br.com.hioktec.minhasfinancas.service.LancamentoService;
 
 @Service

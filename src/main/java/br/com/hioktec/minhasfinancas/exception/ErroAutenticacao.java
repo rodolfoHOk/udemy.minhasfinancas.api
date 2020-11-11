@@ -1,5 +1,9 @@
 package br.com.hioktec.minhasfinancas.exception;
 
+/**
+ * Classe não mais utilizada
+ * @author rodolfo
+ */
 public class ErroAutenticacao extends RuntimeException {
 
 	/**

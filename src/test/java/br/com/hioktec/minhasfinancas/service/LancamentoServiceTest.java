@@ -21,8 +21,8 @@ import br.com.hioktec.minhasfinancas.model.entity.Lancamento;
 import br.com.hioktec.minhasfinancas.model.entity.Usuario;
 import br.com.hioktec.minhasfinancas.model.enums.StatusLancamento;
 import br.com.hioktec.minhasfinancas.model.enums.TipoLancamento;
-import br.com.hioktec.minhasfinancas.model.repository.LancamentoRepository;
 import br.com.hioktec.minhasfinancas.model.repository.LancamentoRepositoryTest;
+import br.com.hioktec.minhasfinancas.repository.LancamentoRepository;
 import br.com.hioktec.minhasfinancas.service.impl.LancamentoServiceImpl;
 
 @ExtendWith(SpringExtension.class)
@@ -196,11 +196,11 @@ public class LancamentoServiceTest {
 		exception = catchThrowable(() -> service.validar(lancamento));
 		assertThat(exception).isInstanceOf(RegraNegocioException.class).hasMessage("Informe um Usuário.");
 		
-		lancamento.setUsuario(Usuario.builder().nome("usuario").email("email@email.com").senha("senha").build());
+		lancamento.setUsuario(new Usuario("usuario", "nomeUsuario", "test@email.com", "senha"));
 		exception = catchThrowable(() -> service.validar(lancamento));
 		assertThat(exception).isInstanceOf(RegraNegocioException.class).hasMessage("Informe um Usuário.");
 		
-		lancamento.setUsuario(Usuario.builder().id(1l).nome("usuario").email("email@email.com").senha("senha").build());
+		lancamento.setUsuario(new Usuario("usuario", "nomeUsuario", "test@email.com", "senha"));
 		exception = catchThrowable(() -> service.validar(lancamento));
 		assertThat(exception).isInstanceOf(RegraNegocioException.class).hasMessage("Informe um Valor válido (número positivo).");
 		

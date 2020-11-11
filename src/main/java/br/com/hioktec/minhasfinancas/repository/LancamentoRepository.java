@@ -1,4 +1,4 @@
-package br.com.hioktec.minhasfinancas.model.repository;
+package br.com.hioktec.minhasfinancas.repository;
 
 import java.math.BigDecimal;
 

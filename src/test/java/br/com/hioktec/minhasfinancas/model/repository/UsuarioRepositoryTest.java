@@ -14,6 +14,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import br.com.hioktec.minhasfinancas.model.entity.Usuario;
+import br.com.hioktec.minhasfinancas.repository.UsuarioRepository;
 
 // @SpringBootTest removemos para não ter que carregar muita coisa para fazer teste
 @ExtendWith(SpringExtension.class)
@@ -93,12 +94,7 @@ public class UsuarioRepositoryTest {
 	}
 	
 	public static Usuario criarUsuario() {
-		return Usuario
-				.builder()
-				.nome("usuario")
-				.email("usuario@email.com")
-				.senha("senha")
-				.build();
+		return new Usuario("usuario", "nomeUsuario", "test@email.com", "senha");
 	}
 	
 }

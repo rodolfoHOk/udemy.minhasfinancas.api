@@ -1,10 +1,20 @@
 package br.com.hioktec.minhasfinancas.api.resource;
 
 import java.math.BigDecimal;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
+import javax.validation.Valid;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,10 +22,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.com.hioktec.minhasfinancas.api.dto.UsuarioDTO;
-import br.com.hioktec.minhasfinancas.exception.ErroAutenticacao;
 import br.com.hioktec.minhasfinancas.exception.RegraNegocioException;
+import br.com.hioktec.minhasfinancas.model.entity.Autoridade;
 import br.com.hioktec.minhasfinancas.model.entity.Usuario;
+import br.com.hioktec.minhasfinancas.model.enums.AutoridadeNome;
+import br.com.hioktec.minhasfinancas.repository.AutoridadeRepository;
+import br.com.hioktec.minhasfinancas.request.CadastroUsuarioRequest;
+import br.com.hioktec.minhasfinancas.request.LoginRequest;
+import br.com.hioktec.minhasfinancas.response.JwtResponse;
+import br.com.hioktec.minhasfinancas.security.JwtTokenProvider;
 import br.com.hioktec.minhasfinancas.service.LancamentoService;
 import br.com.hioktec.minhasfinancas.service.UsuarioService;
 import lombok.RequiredArgsConstructor;
@@ -42,42 +57,88 @@ public class UsuarioResource {
 	
 	private final LancamentoService lancamentoService;
 	
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	@PostMapping
-	public ResponseEntity salvar(@RequestBody UsuarioDTO dto) { //usaremos insomnia para testar (https://insomnia.rest)
-		
-		Usuario usuario = Usuario.builder()
-				.nome(dto.getNome())
-				.email(dto.getEmail())
-				.senha(dto.getSenha())
-				.build();
-		
-		try {
-			Usuario usuarioSalvo = service.salvarUsuario(usuario);
-			return new ResponseEntity(usuarioSalvo, HttpStatus.CREATED);
-		} catch(RegraNegocioException e){
-			return ResponseEntity.badRequest().body(e.getMessage());
+	@Autowired
+	AuthenticationManager authenticationManager;
+	
+	@Autowired
+	JwtTokenProvider tokenProvider;
+	
+	@Autowired
+	AutoridadeRepository autoridadeRepository;
+	
+	@PostMapping("/cadastrar")
+	@PreAuthorize("hasAuthority('ADMINISTRADOR')")
+	public ResponseEntity<?> salvar(@RequestBody CadastroUsuarioRequest cadastroUsuarioRequest) { //usaremos insomnia para testar (https://insomnia.rest)
+		/* Refatoramos para incluir validação e também por implementar segurança Jwt e mudamos UsuarioDTO para CadastroUsuarioRequest 
+		 * Usuario usuario = new Usuario ();
+		 * usuario.setNome(dto.getNome());
+		 * usuario.setEmail(dto.getEmail());
+		 * usuario.setSenha(dto.getSenha());
+		 *
+		 * try {
+		 * 	Usuario usuarioSalvo = service.salvarUsuario(usuario);
+		 *	return new ResponseEntity(usuarioSalvo, HttpStatus.CREATED);
+		 * } catch(RegraNegocioException e){
+		 *	return ResponseEntity.badRequest().body(e.getMessage());
+		 * }
+		 */
+		if (service.existeNomeUsuario(cadastroUsuarioRequest.getNomeUsuario())) {
+			return new ResponseEntity<>("Nome de usuário já existe", HttpStatus.BAD_REQUEST);
 		}
+		
+		if (service.existeEmail(cadastroUsuarioRequest.getEmail())) {
+			return new ResponseEntity<>("Email já existe", HttpStatus.BAD_REQUEST);
+		}
+		
+		Usuario usuario = new Usuario(
+				cadastroUsuarioRequest.getNome(),
+				cadastroUsuarioRequest.getNomeUsuario(),
+				cadastroUsuarioRequest.getEmail(),
+				cadastroUsuarioRequest.getSenha());
+		
+		Set<Autoridade> autoridades = new HashSet<Autoridade>();
+		Autoridade autoridadeUsuar = autoridadeRepository.findByNome(AutoridadeNome.USUARIO)
+				.orElseThrow(() -> new RegraNegocioException("Autoridade de usuário não configurado"));
+		autoridades.add(autoridadeUsuar);
+		if(cadastroUsuarioRequest.getAutoridade() == AutoridadeNome.ADMINISTRADOR.name()) {
+			Autoridade autoridadeAdmin = autoridadeRepository.findByNome(AutoridadeNome.ADMINISTRADOR)
+					.orElseThrow(() -> new RegraNegocioException("Autoridade de usuário não configurado"));
+			autoridades.add(autoridadeAdmin);
+		}
+		
+		Usuario usuarioSalvo = service.salvarUsuario(usuario);
+		
+		return new ResponseEntity<>(usuarioSalvo, HttpStatus.CREATED);
 	}
 	
-	@SuppressWarnings("rawtypes")
 	@PostMapping("/autenticar")
-	public ResponseEntity autenticar(@RequestBody UsuarioDTO dto) {
-		try {
-			Usuario usuarioAutenticado = service.autenticar(dto.getEmail(), dto.getSenha());
-			return ResponseEntity.ok(usuarioAutenticado);
-		} catch (ErroAutenticacao e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+	public ResponseEntity<?> autenticar(@Valid @RequestBody LoginRequest loginRequest) { // mudamos de UsuarioDTO para LoginRequest: JWT
+		/* removermos esta parte para implementar a segurança JWT
+		 * try {
+		 *	Usuario usuarioAutenticado = service.autenticar(dto.getEmail(), dto.getSenha());
+		 *	return ResponseEntity.ok(usuarioAutenticado);
+		 * } catch (ErroAutenticacao e) {
+		 *	return ResponseEntity.badRequest().body(e.getMessage());
+		 * }
+		 */
+		Authentication autenticacao = authenticationManager.authenticate(
+				new UsernamePasswordAuthenticationToken(
+						loginRequest.getNomeUsuarioOuEmail(),
+						loginRequest.getSenha()));
+		
+		SecurityContextHolder.getContext().setAuthentication(autenticacao);
+		
+		String jwt = tokenProvider.gerarToken(autenticacao);
+		
+		return ResponseEntity.ok(new JwtResponse(jwt));
 	}
 	
-	@SuppressWarnings("rawtypes")
 	@GetMapping("{id}/saldo")
-	public ResponseEntity obterSaldo( @PathVariable("id") Long id) {
+	public ResponseEntity<?> obterSaldo( @PathVariable("id") Long id) {
 		Optional<Usuario> usuario = service.obterPorId(id);
 		
 		if(!usuario.isPresent())
-			return new ResponseEntity(HttpStatus.NOT_FOUND);
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		
 		BigDecimal saldo = lancamentoService.obterSaldoPorUsuario(id);
 		return ResponseEntity.ok(saldo);
