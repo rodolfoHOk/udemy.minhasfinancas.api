@@ -27,7 +27,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "usuario", schema = "financas", uniqueConstraints = {
+@Table(name = "usuarios", schema = "financas", uniqueConstraints = {
 		@UniqueConstraint(columnNames = {"nome_usuario"}),
 		@UniqueConstraint(columnNames = {"email"})
 })
@@ -74,7 +74,8 @@ public class Usuario {
 	private String senha;
 	
 	@ManyToMany(fetch = FetchType.LAZY)
-	@JoinTable(name = "autoridades_usuario",
+	@JoinTable(name = "autoridades_usuarios",
+		schema = "financas",
 		joinColumns = @JoinColumn(name = "usuarioId"),
 		inverseJoinColumns = @JoinColumn(name = "autoridadeId"))
 	private Set<Autoridade> autoridades = new HashSet<Autoridade>(); // adicionamos para segurança JWT

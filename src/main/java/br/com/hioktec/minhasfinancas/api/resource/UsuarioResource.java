@@ -15,6 +15,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,7 +31,10 @@ import br.com.hioktec.minhasfinancas.repository.AutoridadeRepository;
 import br.com.hioktec.minhasfinancas.request.CadastroUsuarioRequest;
 import br.com.hioktec.minhasfinancas.request.LoginRequest;
 import br.com.hioktec.minhasfinancas.response.JwtResponse;
+import br.com.hioktec.minhasfinancas.response.UsuarioResponse;
 import br.com.hioktec.minhasfinancas.security.JwtTokenProvider;
+import br.com.hioktec.minhasfinancas.security.UsuarioAtual;
+import br.com.hioktec.minhasfinancas.security.UsuarioPrincipal;
 import br.com.hioktec.minhasfinancas.service.LancamentoService;
 import br.com.hioktec.minhasfinancas.service.UsuarioService;
 import lombok.RequiredArgsConstructor;
@@ -66,6 +70,9 @@ public class UsuarioResource {
 	@Autowired
 	AutoridadeRepository autoridadeRepository;
 	
+	@Autowired
+	PasswordEncoder passwordEncoder;
+	
 	@PostMapping("/cadastrar")
 	@PreAuthorize("hasAuthority('ADMINISTRADOR')")
 	public ResponseEntity<?> salvar(@RequestBody CadastroUsuarioRequest cadastroUsuarioRequest) { //usaremos insomnia para testar (https://insomnia.rest)
@@ -97,15 +104,22 @@ public class UsuarioResource {
 				cadastroUsuarioRequest.getSenha());
 		
 		Set<Autoridade> autoridades = new HashSet<Autoridade>();
+		
 		Autoridade autoridadeUsuar = autoridadeRepository.findByNome(AutoridadeNome.USUARIO)
 				.orElseThrow(() -> new RegraNegocioException("Autoridade de usuário não configurado"));
+		
 		autoridades.add(autoridadeUsuar);
-		if(cadastroUsuarioRequest.getAutoridade() == AutoridadeNome.ADMINISTRADOR.name()) {
+		
+		if(cadastroUsuarioRequest.getAutoridade().equals(AutoridadeNome.ADMINISTRADOR.name())) {
 			Autoridade autoridadeAdmin = autoridadeRepository.findByNome(AutoridadeNome.ADMINISTRADOR)
 					.orElseThrow(() -> new RegraNegocioException("Autoridade de usuário não configurado"));
 			autoridades.add(autoridadeAdmin);
 		}
 		
+		usuario.setAutoridades(autoridades);
+		
+		usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
+				
 		Usuario usuarioSalvo = service.salvarUsuario(usuario);
 		
 		return new ResponseEntity<>(usuarioSalvo, HttpStatus.CREATED);
@@ -131,6 +145,12 @@ public class UsuarioResource {
 		String jwt = tokenProvider.gerarToken(autenticacao);
 		
 		return ResponseEntity.ok(new JwtResponse(jwt));
+	}
+	
+	@GetMapping("/eu")
+	@PreAuthorize("hasAuthority('USUARIO')")
+	public UsuarioResponse getUsuarioAtual(@UsuarioAtual UsuarioPrincipal usuarioAtual) {
+		return new UsuarioResponse(usuarioAtual.getId(), usuarioAtual.getNome(), usuarioAtual.getUsername());
 	}
 	
 	@GetMapping("{id}/saldo")

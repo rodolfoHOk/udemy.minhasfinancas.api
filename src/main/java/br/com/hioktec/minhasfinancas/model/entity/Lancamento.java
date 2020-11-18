@@ -25,7 +25,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "lancamento", schema = "financas")
+@Table(name = "lancamentos", schema = "financas")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -63,7 +63,8 @@ public class Lancamento {
 	
 	@Column(name = "data_cadastro")
 	@Convert(converter = Jsr310JpaConverters.LocalDateConverter.class)
-	private LocalDate dataCadastro;
+	@Builder.Default
+	private LocalDate dataCadastro = LocalDate.now();
 
 }
 

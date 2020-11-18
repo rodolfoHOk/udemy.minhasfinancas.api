@@ -55,7 +55,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	private String getJwtFromRequest(HttpServletRequest request) {
 		String portadorToken = request.getHeader("autorizacao");
 		if(StringUtils.hasText(portadorToken) && portadorToken.startsWith("Portador ")) {
-			return portadorToken.substring(9, portadorToken.length());
+			return portadorToken.substring(10, portadorToken.length()-1); // alteramos de 9 para 10 e -1 para remover aspas.
 		}
 		return null;
 	}
