@@ -76,7 +76,7 @@ public class UsuarioResource {
 	
 	@PostMapping("/cadastrar")
 	@PreAuthorize("hasAuthority('ADMINISTRADOR')")
-	public ResponseEntity<?> salvar(@RequestBody CadastroUsuarioRequest cadastroUsuarioRequest) { //usaremos insomnia para testar (https://insomnia.rest)
+	public ResponseEntity<?> salvar(@Valid @RequestBody CadastroUsuarioRequest cadastroUsuarioRequest) { //usaremos insomnia para testar (https://insomnia.rest)
 		/* Refatoramos para incluir validação e também por implementar segurança Jwt e mudamos UsuarioDTO para CadastroUsuarioRequest 
 		 * Usuario usuario = new Usuario ();
 		 * usuario.setNome(dto.getNome());
@@ -161,7 +161,7 @@ public class UsuarioResource {
 	}
 	
 	@GetMapping("{id}/saldo")
-	public ResponseEntity<?> obterSaldo( @PathVariable("id") Long id) {
+	public ResponseEntity<?> obterSaldo(@PathVariable("id") Long id) {
 		Optional<Usuario> usuario = service.obterPorId(id);
 		
 		if(!usuario.isPresent())
