@@ -10,7 +10,7 @@ public interface UsuarioService {
 	
 	Usuario salvarUsuario(Usuario usuario);
 	
-	// void validarEmail(String email); refatoramos para melhoras validação.
+	// void validarEmail(String email); refatoramos para melhorar validação.
 	
 	Optional<Usuario> obterPorId(Long id);
 	
