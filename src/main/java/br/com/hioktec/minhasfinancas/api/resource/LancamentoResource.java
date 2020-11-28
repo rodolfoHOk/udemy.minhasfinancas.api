@@ -130,7 +130,7 @@ public class LancamentoResource {
 		} else {
 			lancamentoFiltro.setUsuario(usuario.get());
 		}
-		System.out.println(lancamentoFiltro);
+		
 		List<Lancamento> lancamentos = service.buscar(lancamentoFiltro);
 		return ResponseEntity.ok(lancamentos);
 	}
