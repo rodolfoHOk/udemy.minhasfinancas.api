@@ -3,6 +3,8 @@ package br.com.hioktec.minhasfinancas.api.resource;
 import java.util.List;
 import java.util.Optional;
 
+import javax.validation.Valid;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,13 +18,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.com.hioktec.minhasfinancas.api.dto.AtualizaStatusDTO;
 import br.com.hioktec.minhasfinancas.api.dto.LancamentoDTO;
 import br.com.hioktec.minhasfinancas.exception.RegraNegocioException;
 import br.com.hioktec.minhasfinancas.model.entity.Lancamento;
 import br.com.hioktec.minhasfinancas.model.entity.Usuario;
 import br.com.hioktec.minhasfinancas.model.enums.StatusLancamento;
 import br.com.hioktec.minhasfinancas.model.enums.TipoLancamento;
+import br.com.hioktec.minhasfinancas.request.AtualizarLancamentoRequest;
+import br.com.hioktec.minhasfinancas.request.AtualizarStatusRequest;
+import br.com.hioktec.minhasfinancas.request.CadastroLancamentoRequest;
 import br.com.hioktec.minhasfinancas.service.LancamentoService;
 import br.com.hioktec.minhasfinancas.service.UsuarioService;
 import lombok.RequiredArgsConstructor;
@@ -41,11 +45,12 @@ public class LancamentoResource {
 		this.usuarioService = usuarioService;
 	*/
 	
+	// alterado para validação de LancamentoDTO para CadastroLancamentoRequest.
 	@PostMapping
 	@PreAuthorize("hasAuthority('USUARIO')")
-	public ResponseEntity<?> salvar( @RequestBody LancamentoDTO dto ) {
+	public ResponseEntity<?> salvar( @Valid @RequestBody CadastroLancamentoRequest cadastroRequest ) {
 		try {
-			Lancamento entidade = converter(dto);
+			Lancamento entidade = converter(cadastroRequest);
 			entidade = service.salvar(entidade);
 			return new ResponseEntity<>(entidade, HttpStatus.CREATED);
 		} catch (RegraNegocioException e) {
@@ -60,12 +65,13 @@ public class LancamentoResource {
 				.orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
 	}
 	
+	// alterado para validação de LancamentoDTO para AtualizarLancamentoRequest.
 	@PutMapping("{id}")
 	@PreAuthorize("hasAuthority('USUARIO')")
-	public ResponseEntity<?> atualizar( @PathVariable("id") Long id, @RequestBody LancamentoDTO dto ) {
+	public ResponseEntity<?> atualizar( @PathVariable("id") Long id, @Valid @RequestBody AtualizarLancamentoRequest atualizarRequest) {
 		return service.obterPorId(id).map( entity -> {
 			try {
-				Lancamento lancamento = converter(dto);
+				Lancamento lancamento = converter(atualizarRequest);
 				lancamento.setId(entity.getId());
 				service.atualizar(lancamento);
 				return ResponseEntity.ok(lancamento);
@@ -76,11 +82,12 @@ public class LancamentoResource {
 			new ResponseEntity<>("Lancamento não encontrado na base de dados", HttpStatus.BAD_REQUEST));
 	}
 	
+	// alterado para validação de AtualizarStatusDTO para AtualizarStatusRequest.
 	@PutMapping("{id}/atualiza-status")
 	@PreAuthorize("hasAuthority('USUARIO')")
-	public ResponseEntity<?> atualizarStatus(@PathVariable("id") Long id, @RequestBody AtualizaStatusDTO dto) {
+	public ResponseEntity<?> atualizarStatus(@PathVariable("id") Long id, @Valid @RequestBody AtualizarStatusRequest atualizarStatusRequest) {
 		return service.obterPorId(id).map( entity -> {
-			StatusLancamento statusSelecionado = StatusLancamento.valueOf(dto.getStatus());
+			StatusLancamento statusSelecionado = StatusLancamento.valueOf(atualizarStatusRequest.getStatus());
 			if(statusSelecionado == null)
 				return new ResponseEntity<>("Status informado inválido", HttpStatus.BAD_REQUEST);
 			try {
@@ -112,6 +119,7 @@ public class LancamentoResource {
 			@RequestParam("usuario") Long usuarioId // sempre requerido
 			) {
 		Lancamento lancamentoFiltro = new Lancamento();
+		lancamentoFiltro.setDataCadastro(null); // necessário pois é preenchido automaticamente com now(). 
 		lancamentoFiltro.setDescricao(descricao);
 		lancamentoFiltro.setMes(mes);
 		lancamentoFiltro.setAno(ano);
@@ -122,7 +130,7 @@ public class LancamentoResource {
 		} else {
 			lancamentoFiltro.setUsuario(usuario.get());
 		}
-		
+		System.out.println(lancamentoFiltro);
 		List<Lancamento> lancamentos = service.buscar(lancamentoFiltro);
 		return ResponseEntity.ok(lancamentos);
 	}
@@ -138,27 +146,53 @@ public class LancamentoResource {
 				.status(lancamento.getStatus().name())
 				.usuario(lancamento.getUsuario().getId())
 				.build();
-				
 	}
 	
-	private Lancamento converter(LancamentoDTO dto) {
+	private Lancamento converter(CadastroLancamentoRequest cadastroRequest) {
 		Lancamento lancamento = new Lancamento();
-		lancamento.setId(dto.getId());
-		lancamento.setDescricao(dto.getDescricao());
-		lancamento.setMes(dto.getMes());
-		lancamento.setAno(dto.getAno());
-		lancamento.setValor(dto.getValor());
-		lancamento.setTipo(TipoLancamento.valueOf(dto.getTipo()));
+		// lancamento.setId(dto.getId()); removido para cadastro novo não utiliza (Gerado pelo banco de dados)
+		lancamento.setDescricao(cadastroRequest.getDescricao());
+		lancamento.setMes(cadastroRequest.getMes());
+		lancamento.setAno(cadastroRequest.getAno());
+		lancamento.setValor(cadastroRequest.getValor());
+		lancamento.setTipo(TipoLancamento.valueOf(cadastroRequest.getTipo()));
+		
+		/* Retiramos para implementar validação por padrão é salvo como pendente pelo LancamentoService.
 		if(dto.getStatus() != null) {
 			lancamento.setStatus(StatusLancamento.valueOf(dto.getStatus()));
 		}
+		*/
 		
 		Usuario usuario = usuarioService
-				.obterPorId(dto.getUsuario())
+				.obterPorId(cadastroRequest.getUsuario())
 				.orElseThrow(() -> new RegraNegocioException("Usuário não encontrado para o id informado"));
 		
 		lancamento.setUsuario(usuario);
 		
 		return lancamento;
 	}
+	
+	// Separamos o converter em cadastrar e atualizar para implementar a validação.
+	private Lancamento converter(AtualizarLancamentoRequest atualizarRequest) {
+		Lancamento lancamento = new Lancamento();
+		lancamento.setId(atualizarRequest.getId());
+		lancamento.setDescricao(atualizarRequest.getDescricao());
+		lancamento.setMes(atualizarRequest.getMes());
+		lancamento.setAno(atualizarRequest.getAno());
+		lancamento.setValor(atualizarRequest.getValor());
+		lancamento.setTipo(TipoLancamento.valueOf(atualizarRequest.getTipo()));
+		
+		if(atualizarRequest.getStatus() != null) {
+			lancamento.setStatus(StatusLancamento.valueOf(atualizarRequest.getStatus()));
+		}
+		
+		Usuario usuario = usuarioService
+				.obterPorId(atualizarRequest.getUsuario())
+				.orElseThrow(() -> new RegraNegocioException("Usuário não encontrado para o id informado"));
+		
+		lancamento.setUsuario(usuario);
+		
+		return lancamento;
+	}
+	
 }

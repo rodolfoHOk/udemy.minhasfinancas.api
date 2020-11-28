@@ -14,6 +14,14 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.validation.constraints.DecimalMin;
+import javax.validation.constraints.Digits;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.Size;
 
 import org.springframework.data.jpa.convert.threeten.Jsr310JpaConverters;
 
@@ -38,22 +46,37 @@ public class Lancamento {
 	private Long id;
 	
 	@Column(name = "descricao")
+	@NotBlank
+	@Size(max = 255)
 	private String descricao;
 	
 	@Column(name = "mes")
+	@NotNull
+	@Min(value = 1)
+	@Max(value = 12)
 	private Integer mes;
 	
 	@Column(name = "ano")
+	@NotNull
+	@Positive
+	@Digits(integer = 4, fraction = 0)
 	private Integer ano;
 	
 	@Column(name = "valor")
+	@NotNull
+	@DecimalMin(value = "0.01", inclusive = true)
+	@Digits(integer = 16, fraction = 2)
 	private BigDecimal valor;
 	
-	@Column(name = "tipo")
+	@Column(name = "tipo", length = 20)
+	@NotNull
+	// @Size(max = 20) não funciona alternativa é por length no column
 	@Enumerated(value = EnumType.STRING)
 	private TipoLancamento tipo;
 	
-	@Column(name = "status")
+	@Column(name = "status", length = 20)
+	@NotNull
+	// @Size(max = 20) não funciona alternativa é por length no column
 	@Enumerated(value = EnumType.STRING)
 	private StatusLancamento status;
 	
