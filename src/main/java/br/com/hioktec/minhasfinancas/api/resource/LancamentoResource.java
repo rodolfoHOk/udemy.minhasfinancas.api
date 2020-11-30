@@ -115,7 +115,9 @@ public class LancamentoResource {
 	public ResponseEntity<?> buscar(
 			@RequestParam(value = "descricao", required = false) String descricao,
 			@RequestParam(value = "mes", required = false) Integer mes,
-			@RequestParam(value = "ano", required = false) Integer ano,
+			@RequestParam(value = "ano", required = true) Integer ano,
+			@RequestParam(value = "tipo", required = false) String tipo,
+			@RequestParam(value = "status", required = false) String status,
 			@RequestParam("usuario") Long usuarioId // sempre requerido
 			) {
 		Lancamento lancamentoFiltro = new Lancamento();
@@ -123,7 +125,12 @@ public class LancamentoResource {
 		lancamentoFiltro.setDescricao(descricao);
 		lancamentoFiltro.setMes(mes);
 		lancamentoFiltro.setAno(ano);
-		
+		if (tipo != null && tipo.length() > 0) {
+			lancamentoFiltro.setTipo(TipoLancamento.valueOf(tipo));
+		}
+		if (status != null && status.length() > 0) {
+			lancamentoFiltro.setStatus(StatusLancamento.valueOf(status));
+		}
 		Optional<Usuario> usuario = usuarioService.obterPorId(usuarioId);
 		if(!usuario.isPresent()) {
 			return ResponseEntity.badRequest().body("Não foi possível realizar a busca. Usuário não encontrado para o id informado");
