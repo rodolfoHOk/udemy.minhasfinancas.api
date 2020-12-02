@@ -16,6 +16,7 @@ import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 import org.hibernate.annotations.NaturalId;
@@ -88,6 +89,14 @@ public class Usuario {
 		this.senha = senha;
 	}
 	
+	public Usuario(@NotNull Long id, @NotBlank @Size(max = 40) String nome, @NotBlank @Size(max = 20) String nomeUsuario,
+			@NotBlank @Size(max = 40) @Email String email, @NotBlank @Size(max = 100) String senha) {
+		this.id = id;
+		this.nome = nome;
+		this.nomeUsuario = nomeUsuario;
+		this.email = email;
+		this.senha = senha;
+	}
 }
 	
 	/* Removemos pois usaremos o lombok! (projectlombok.org)

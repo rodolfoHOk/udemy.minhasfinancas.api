@@ -1,7 +1,12 @@
 package br.com.hioktec.minhasfinancas.service.impl;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.ExampleMatcher.StringMatcher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -69,5 +74,29 @@ public class UsuarioServiceImpl implements UsuarioService {
 	public Boolean existeEmail(String email) {
 		return repository.existsByEmail(email);
 	}
-	
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<Usuario> buscar(Usuario usuarioFiltro) {
+		Example<Usuario> example = Example.of(
+				usuarioFiltro,
+				ExampleMatcher.matching()
+					.withIgnoreCase()
+					.withStringMatcher(StringMatcher.CONTAINING));
+		return repository.findAll(example);
+	}
+
+	@Override
+	@Transactional
+	public Usuario atualizar(Usuario usuario) {
+		Objects.requireNonNull(usuario.getId());
+		return repository.save(usuario);
+	}
+
+	@Override
+	@Transactional
+	public void deletar(Usuario usuario) {
+		Objects.requireNonNull(usuario.getId());
+		repository.delete(usuario);		
+	}
 }

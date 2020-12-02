@@ -64,10 +64,11 @@ public class LancamentoServiceImpl implements LancamentoService{
 		.
 		.
 		*/
-		Example<Lancamento> example = Example.of(lancamentoFiltro, 
+		Example<Lancamento> example = Example.of(
+				lancamentoFiltro, 
 				ExampleMatcher.matching()
-				.withIgnoreCase()
-				.withStringMatcher(StringMatcher.CONTAINING));
+					.withIgnoreCase()
+					.withStringMatcher(StringMatcher.CONTAINING));
 		return repository.findAll(example);
 	}
 

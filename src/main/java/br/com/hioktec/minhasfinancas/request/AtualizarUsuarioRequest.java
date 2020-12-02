@@ -2,19 +2,23 @@ package br.com.hioktec.minhasfinancas.request;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Classe representa uma requisição de cadastro de usuário (com validação)
+ * Classe que representa uma requisição de atualização de usuario
  * @author rodolfo
  */
 @Getter
 @Setter
-public class CadastroUsuarioRequest {
+public class AtualizarUsuarioRequest {
 	
+	@NotNull
+	private Long id;
+
 	@NotBlank
 	@Size(min = 4, max = 40)
 	private String nome;
